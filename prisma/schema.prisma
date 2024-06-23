@@ -1,0 +1,437 @@
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  includeRelationFromFields = true
+}
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  FIRM_OWNER
+  FIRM_ADMIN
+  SUBSIDIARY_USER
+  SUBSIDIARY_GUEST
+}
+
+enum Icon {
+  settings
+  chart
+  calendar
+  check
+  chip
+  compass
+  database
+  flag
+  home
+  info
+  link
+  lock
+  messages
+  notification
+  payment
+  power
+  receipt
+  shield
+  star
+  tune
+  videorecorder
+  wallet
+  warning
+  headphone
+  send
+  stages
+  person
+  category
+  contact
+  clipboardIcon
+}
+
+model User {
+  id           String         @id @default(uuid())
+  name         String
+  avatarUrl    String         @db.Text
+  email        String         @unique
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  role         Role           @default(SUBSIDIARY_USER)
+  firmId     String?
+  Firm       Firm?        @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  Permissions  Permissions[]
+  Ticket       Ticket[]
+  Notification Notification[]
+
+  @@index([firmId])
+}
+
+model Permissions {
+  id           String     @id @default(uuid())
+  email        String
+  User         User       @relation(fields: [email], references: [email], onDelete: Cascade)
+  subSidiaryId String
+  SubSidiary   SubSidiary @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+  access       Boolean
+
+  @@index([subSidiaryId])
+  @@index([email])
+}
+
+model Firm {
+  id               String                @id @default(uuid())
+  connectAccountId String?               @default("")
+  customerId       String                @default("")
+  name             String
+  firmLogo       String                @db.Text
+  companyEmail     String                @db.Text
+  companyPhone     String
+  whiteLabel       Boolean               @default(true)
+  address          String
+  city             String
+  zipCode          String
+  state            String
+  country          String
+  goal             Int                   @default(5)
+  users            User[]
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  SubSidiary       SubSidiary[]
+  SidebarOption    FirmSidebarOption[]
+  Invitation       Invitation[]
+  Notification     Notification[]
+  Subscription     Subscription?
+  AddOns           AddOns[]
+}
+
+model SubSidiary {
+  id               String                    @id @default(uuid())
+  connectAccountId String?                   @default("")
+  name             String
+  subSidiaryLogo   String                    @db.Text
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  companyEmail     String                    @db.Text
+  companyPhone     String
+  goal             Int                       @default(5)
+  address          String
+  city             String
+  zipCode          String
+  state            String
+  country          String
+  firmId         String
+  Firm           Firm                    @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  SidebarOption    SubSidiarySidebarOption[]
+  Permissions      Permissions[]
+  Campaigns          Campaign[]
+  Media            Media[]
+  Contact          Contact[]
+  Trigger          Trigger[]
+  Selfregulator       Selfregulator[]
+  Stage         Stage[]
+  Tags             Tag[]
+  Notification     Notification[]
+
+  @@index([firmId])
+}
+
+model Tag {
+  id           String   @id @default(uuid())
+  name         String
+  color        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  subSidiaryId String
+
+  SubSidiary SubSidiary @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+  Ticket     Ticket[]
+
+  @@index([subSidiaryId])
+}
+
+model Stage {
+  id           String     @id @default(uuid())
+  name         String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  Lane         Lane[]
+  SubSidiary   SubSidiary @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+  subSidiaryId String
+
+  @@index([subSidiaryId])
+}
+
+model Lane {
+  id         String   @id @default(uuid())
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  Stage   Stage @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stageId String
+  Tickets    Ticket[]
+  order      Int      @default(0)
+
+  @@index([stageId])
+}
+
+model Ticket {
+  id          String   @id @default(uuid())
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  laneId      String
+  order       Int      @default(0)
+  Lane        Lane     @relation(fields: [laneId], references: [id], onDelete: Cascade)
+  value       Decimal?
+  description String?
+  Tags        Tag[]
+
+  customerId String?
+  Customer   Contact? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  assignedUserId String?
+  Assigned       User?   @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  @@index([laneId])
+  @@index([customerId])
+  @@index([assignedUserId])
+}
+
+enum TriggerTypes {
+  CONTACT_FORM
+}
+
+model Trigger {
+  id           String       @id @default(uuid())
+  name         String
+  type         TriggerTypes
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  subSidiaryId String
+  Subsidiary   SubSidiary   @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+  Selfregulators  Selfregulator[]
+
+  @@index([subSidiaryId])
+}
+
+model Selfregulator {
+  id                 String               @id @default(uuid())
+  name               String
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  triggerId          String?
+  published          Boolean              @default(false)
+  Trigger            Trigger?             @relation(fields: [triggerId], references: [id], onDelete: Cascade)
+  subSidiaryId       String
+  Subsidiary         SubSidiary           @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+  Action             Action[]
+  SelfregulatorInstance SelfregulatorInstance[]
+
+  @@index([triggerId])
+  @@index([subSidiaryId])
+}
+
+model SelfregulatorInstance {
+  id           String     @id @default(uuid())
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  selfregulatorId String
+  Selfregulator   Selfregulator @relation(fields: [selfregulatorId], references: [id], onDelete: Cascade)
+  active       Boolean    @default(false)
+
+  @@index([selfregulatorId])
+}
+
+enum ActionType {
+  CREATE_CONTACT
+}
+
+model Action {
+  id           String     @id @default(uuid())
+  name         String
+  type         ActionType
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  selfregulatorId String
+  order        Int
+  Selfregulator   Selfregulator @relation(fields: [selfregulatorId], references: [id], onDelete: Cascade)
+  laneId       String     @default("0")
+
+  @@index([selfregulatorId])
+}
+
+model Contact {
+  id           String   @id @default(uuid())
+  name         String
+  email        String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  subSidiaryId String
+
+  Subsidiary SubSidiary @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+  Ticket     Ticket[]
+
+  @@index([subSidiaryId])
+}
+
+model Media {
+  id           String     @id @default(uuid())
+  type         String?
+  name         String
+  link         String     @unique
+  subSidiaryId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  Subsidiary   SubSidiary @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+
+  @@index([subSidiaryId])
+}
+
+model Campaign {
+  id            String       @id @default(uuid())
+  name          String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  description   String?
+  published     Boolean      @default(false)
+  subDomainName String?      @unique
+  favicon       String?      @db.Text
+  subSidiaryId  String
+  SubSidiary    SubSidiary   @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+  CampaignPages   CampaignPage[]
+  liveProducts  String?      @default("[]")
+  ClassName     ClassName[]
+
+  @@index([subSidiaryId])
+}
+
+model ClassName {
+  id         String   @id @default(uuid())
+  name       String
+  color      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  campaignId   String
+  customData String?  @db.LongText
+  Campaign     Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+}
+
+model CampaignPage {
+  id           String   @id @default(uuid())
+  name         String
+  pathName     String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  visits       Int      @default(0)
+  content      String?  @db.LongText
+  order        Int
+  previewImage String?  @db.Text
+  campaignId     String
+  Campaign       Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+}
+
+model FirmSidebarOption {
+  id        String   @id @default(uuid())
+  name      String   @default("Menu")
+  link      String   @default("#")
+  icon      Icon     @default(info)
+  firmId  String
+  Firm    Firm?  @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([firmId])
+}
+
+model SubSidiarySidebarOption {
+  id           String      @id @default(uuid())
+  name         String      @default("Menu")
+  link         String      @default("#")
+  icon         Icon        @default(info)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  SubSidiary   SubSidiary? @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+  subSidiaryId String?
+
+  @@index([subSidiaryId])
+}
+
+enum InvitationStatus {
+  ACCEPTED
+  REVOKED
+  PENDING
+}
+
+model Invitation {
+  id       String           @id @default(uuid())
+  email    String           @unique
+  firmId String
+  Firm   Firm           @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  status   InvitationStatus @default(PENDING)
+  role     Role             @default(SUBSIDIARY_USER)
+
+  @@index([firmId])
+}
+
+model Notification {
+  id           String  @id @default(uuid())
+  notification String
+  firmId     String
+  subSidiaryId String?
+  userId       String
+
+  User       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Firm     Firm      @relation(fields: [firmId], references: [id], onDelete: Cascade)
+  SubSidiary SubSidiary? @relation(fields: [subSidiaryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([firmId])
+  @@index([subSidiaryId])
+  @@index([userId])
+}
+
+enum Plan {
+  price_1PUcakLGGToxCAiHFHAIuRfW
+  price_1PUcbtLGGToxCAiHPIKPymfa
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  plan      Plan?
+  price     String?
+  active    Boolean  @default(false)
+
+  priceId              String
+  customerId           String
+  currentPeriodEndDate DateTime
+  subscritiptionId     String   @unique
+
+  firmId String? @unique
+  Firm   Firm? @relation(fields: [firmId], references: [id])
+
+  @@index([customerId])
+}
+
+model AddOns {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  active    Boolean  @default(false)
+  priceId   String   @unique
+  firmId  String?
+  Firm    Firm?  @relation(fields: [firmId], references: [id])
+
+  @@index([firmId])
+}

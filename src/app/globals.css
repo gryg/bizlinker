@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  height: 100vh;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+@layer base {
+  :root {
+    /* Background and Foreground Colors */
+    --background: 145 20% 95%; /* Very light mint green */
+    --foreground: 145 15% 25%; /* Deep green for text */
+
+    /* Primary Colors */
+    --primary: 146 55% 30%; /* Bright green */
+    --primary-foreground: 0 0% 100%; /* Pure white for high contrast */
+
+    /* Card Colors */
+    --card: 145 20% 95%; /* Very light mint green */
+    --card-foreground: 145 15% 25%; /* Deep green */
+
+    /* Popover Colors */
+    --popover: 0 0% 100%; /* Pure white */
+    --popover-foreground: 145 15% 25%; /* Deep green */
+
+    /* Secondary Colors */
+    --secondary: 144 30% 80%; /* Light olive green */
+    --secondary-foreground: 40 35% 20%; /* Dark brass for contrast */
+
+    /* Muted Colors */
+    --muted: 144 20% 85%; /* Soft light green */
+    --muted-foreground: 40 20% 35%; /* Dark muted brass */
+    --greenish-gold: #e4c735; 
+
+    /* Accent Colors */
+    --accent: 0 0% 70%; /* Light silver */
+    --accent-foreground: 40 35% 20%; /* Brass gold */
+
+    /* Destructive Colors */
+    --destructive: 10 60% 50%; /* Medium red */
+    --destructive-foreground: 0 0% 100%; /* White */
+
+    /* Border and Input Colors */
+    --border: 0 0% 85%; /* Light gray */
+    --input: 0 0% 95%; /* Very light gray */
+
+    /* Ring Colors */
+    --ring: 146 55% 30%; /* Bright green */
+
+    /* Radius */
+    --radius: 0.5rem; /* Standard border radius */
+  }
+
+  .dark {
+    /* Dark Mode Background and Foreground Colors */
+    --background: 144 25% 10%; /* Very dark green */
+    --foreground: 144 24% 90%; /* Soft pale green */
+
+    /* Muted Colors in Dark Mode */
+    --muted: 144 25% 15%; /* Deep muted green */
+    --muted-foreground: 144 34% 85%; /* Lighter muted green */
+
+    /* Popover Colors in Dark Mode */
+    --popover: 216 16% 20%; /* Dark metallic gray */
+    --popover-foreground: 144 34% 90%; /* Soft pale green */
+
+    /* Card Colors in Dark Mode */
+    --card: 144 25% 10%; /* Very dark green */
+    --card-foreground: 144 34% 85%; /* Light green */
+
+    /* Border and Input Colors in Dark Mode */
+    --border: 144 25% 15%; /* Deep muted green */
+    --input: 144 25% 20%; /* Darker muted green */
+
+    /* Primary Colors in Dark Mode */
+    --primary: 144 40% 15%; /* Dark emerald green */
+    --primary-foreground: 144 34% 96%; /* Very light green for contrast */
+    
+    /* Secondary Colors in Dark Mode */
+    --secondary: 162 25% 20%; /* Dark olive green */
+    --secondary-foreground: 144 34% 96%; /* Light green */
+
+    /* Accent Colors in Dark Mode */
+    --accent: 220 14% 45%; /* Metallic silver */
+    --accent-foreground: 40 50% 70%; /* Brass gold */
+
+    /* Destructive Colors in Dark Mode */
+    --destructive: 10 70% 35%; /* Dark brick red */
+    --destructive-foreground: 60 100% 92%; /* Light cream */
+
+    /* Ring Colors in Dark Mode */
+    --ring: 144 40% 15%; /* Dark emerald green */
+
+  }
+  
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.dotPattern {
+  background-image: radial-gradient(rgb(0, 51, 51) 1px, transparent 1px); /* Dark teal dots */
+  background-size: 25px 25px;
+}
+
+.use-automation-zoom-in {
+  animation: automation-zoom-in 0.5s;
+}
+
+@keyframes automation-zoom-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
